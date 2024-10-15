@@ -1,6 +1,6 @@
 import json
 
-base = 60
+base = 65
 
 def get_activation_token_by_login(
         login,
