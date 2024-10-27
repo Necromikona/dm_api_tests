@@ -4,7 +4,7 @@ class Configuration:
             host: str,
             headers: dict = None,
             disable_log: bool = True,
-            print_curl: bool = False,
+            print_curl: bool = True,
     ):
         self.host = host
         self.headers = headers
