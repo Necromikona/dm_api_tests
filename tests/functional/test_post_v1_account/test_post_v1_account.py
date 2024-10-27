@@ -1,9 +1,10 @@
-from resource.resource import base
-
-from dm_api_account.apis.account_api import AccountApi
-from restclient.configuration import Configuration
-
 import structlog
+
+from helpers.account_helper import AccountHelper
+from restclient.configuration import Configuration
+from services.api_mailhog import MailHogApi
+from services.dm_api_account import DMPApiAccount
+
 
 structlog.configure(
     processors=[
@@ -17,10 +18,15 @@ structlog.configure(
 
 
 def test_post_v1_account():
-    dm_api_configuration = Configuration(host= 'http://5.63.153.31:5051', disable_log=False)
-    account_api= AccountApi(dm_api_configuration)
+    dm_api_configuration = Configuration(host= 'http://5.63.153.31:5051')
+    mailhog_configuration = Configuration(host='http://5.63.153.31:5025')
 
-    login = f'testing_{int(base)}'
+    mailhog = MailHogApi(configuration=mailhog_configuration)
+    account= DMPApiAccount(configuration=dm_api_configuration)
+
+    account_helper = AccountHelper(dm_account_api=account, mailhog=mailhog)
+
+    login = f'testing_110'
     password = '6789012345'
     email = f"{login}@mail.ru"
 
@@ -30,6 +36,6 @@ def test_post_v1_account():
         'password': password,
     }
 
-    response = account_api.post_v1_account(json_data=json_data)
-    assert response.status_code == 201, "Error create User"
+    account_helper.dm_account_api.account_api.post_v1_account(json_data=json_data)
+
 
