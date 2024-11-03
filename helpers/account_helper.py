@@ -30,8 +30,31 @@ class AccountHelper:
         self.dm_account_api.account_api.set_headers(token)
         self.dm_account_api.login_api.set_headers(token)
 
-    def change_password(self):
-        pass
+    def change_password(
+            self,
+            login: str,
+            email: str,
+            oldPassword: str,
+            newPassword: str
+    ):
+        json_data = {
+            'login': login,
+            'email': email,
+        }
+        response = self.dm_account_api.account_api.post_v1_account_password(json_data=json_data)
+        assert response.status_code == 200, "Password no has been reset"
+
+        token = self.get_activation_token_by_login(login=login, find_URI=True)
+        assert token is not None, f"Not found token for {login}"
+
+        json_data = {
+            'login': login,
+            'token': token,
+            'oldPassword': oldPassword,
+            'newPassword': newPassword,
+        }
+        response = self.dm_account_api.account_api.put_v1_account_password(json_data=json_data)
+        assert response.status_code == 200, "Password no has been changed"
 
     def register_new_user(
             self,
@@ -100,12 +123,17 @@ class AccountHelper:
     def get_activation_token_by_login(
             self,
             login,
+            find_URI = False,
     ):
         token = None
         response = self.mailhog.mailhog_api.get_api_v2_messages()
+
         for item in response.json()['items']:
             user_data = json.loads(item['Content']['Body'])
             user_login = user_data['Login']
             if user_login == login:
-                token = user_data['ConfirmationLinkUrl'].split('/')[-1]
+                if find_URI:
+                    token = user_data['ConfirmationLinkUri'].split('/')[-1]
+                else:
+                    token = user_data['ConfirmationLinkUrl'].split('/')[-1]
                 return token

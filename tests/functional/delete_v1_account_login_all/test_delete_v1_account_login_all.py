@@ -1,4 +1,4 @@
-def test_get_v1_account_auth(account_helper, prepare_user):
+def test_delete_v1_account_login(account_helper, prepare_user):
     login = prepare_user.login
     password = prepare_user.password
     email = prepare_user.email
@@ -7,4 +7,4 @@ def test_get_v1_account_auth(account_helper, prepare_user):
 
     account_helper.auth_client(login=login, password=password)
 
-    account_helper.dm_account_api.account_api.get_v1_account()
+    account_helper.dm_account_api.login_api.delete_v1_account_login_all()
