@@ -30,7 +30,9 @@ class AccountHelper:
         self.dm_account_api.account_api.set_headers(token)
         self.dm_account_api.login_api.set_headers(token)
 
-    @retry(stop_max_attempt_number=5, retry_on_result=retry_if_result_none, wait_fixed=1000)
+    def change_password(self):
+        pass
+
     def register_new_user(
             self,
             login: str,
@@ -54,7 +56,6 @@ class AccountHelper:
 
         return response
 
-    @retry(stop_max_attempt_number=5, retry_on_result=retry_if_result_none, wait_fixed=1000)
     def user_login(self, login:str, password:str, remember_me:bool = True):
         json_data = {
             'login': login,
@@ -65,7 +66,6 @@ class AccountHelper:
         assert response.status_code == 200, "User not authorized"
         return response
 
-    @retry(stop_max_attempt_number=5, retry_on_result=retry_if_result_none, wait_fixed=1000)
     def user_login_without_activate(self, login:str, password:str, remember_me:bool = True):
         json_data = {
             'login': login,
@@ -76,7 +76,6 @@ class AccountHelper:
         assert response.status_code == 403, "Authorize user without activate email"
         return response
 
-    @retry(stop_max_attempt_number=5, retry_on_result=retry_if_result_none, wait_fixed=1000)
     def change_email_for_user(self, login:str, password:str, email:str):
         json_data = {
              'login': login,
@@ -87,7 +86,6 @@ class AccountHelper:
         assert response.status_code == 200, f"Not change email for User {login}"
         return response
 
-    @retry(stop_max_attempt_number=5, retry_on_result=retry_if_result_none, wait_fixed=1000)
     def activate_token_for_user(self, login:str):
         # Поиск по логину
         token = self.get_activation_token_by_login(login=login)

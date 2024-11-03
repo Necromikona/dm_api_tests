@@ -19,35 +19,35 @@ structlog.configure(
     ]
 )
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def mailhog_api():
     mailhog_configuration = Configuration(host= 'http://5.63.153.31:5025')
     mailhog = MailHogApi(configuration=mailhog_configuration)
     return mailhog
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def account_api():
     dm_api_configuration = Configuration(host='http://5.63.153.31:5051', disable_log=False)
     account = DMPApiAccount(configuration=dm_api_configuration)
     return account
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def account_helper(account_api, mailhog_api):
     account_helper = AccountHelper(dm_account_api=account_api, mailhog=mailhog_api)
     return account_helper
 
-@pytest.fixture
-def auth_account_helper(mailhog_api):
-    dm_api_configuration = Configuration(host='http://5.63.153.31:5051', disable_log=False)
-    account = DMPApiAccount(configuration=dm_api_configuration)
-
-    account_helper = AccountHelper(dm_account_api=account, mailhog=mailhog_api)
-    account_helper.auth_client(
-        login="testing_131",
-        password='6789012345'
-    )
-
-    return account_helper
+# @pytest.fixture(scope="session")
+# def auth_account_helper(mailhog_api):
+#     dm_api_configuration = Configuration(host='http://5.63.153.31:5051', disable_log=False)
+#     account = DMPApiAccount(configuration=dm_api_configuration)
+#
+#     account_helper = AccountHelper(dm_account_api=account, mailhog=mailhog_api)
+#     account_helper.auth_client(
+#         login="testing_131",
+#         password='6789012345'
+#     )
+#
+#     return account_helper
 
 @pytest.fixture(scope="function")
 def prepare_user():
