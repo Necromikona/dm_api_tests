@@ -1,7 +1,13 @@
 import json
 
+from dm_api_account.models.change_email import ChangeEmail
+from dm_api_account.models.change_password import ChangePassword
+from dm_api_account.models.registration import Registration
+from dm_api_account.models.reset_password import ResetPassword
 from services.dm_api_account import DMPApiAccount
 from services.api_mailhog import MailHogApi
+
+from dm_api_account.models.login_credentials import LoginCredentials
 
 from retrying import retry
 
@@ -22,7 +28,7 @@ class AccountHelper:
 
     def auth_client(self, login:str, password: str):
         response = self.dm_account_api.login_api.post_v1_account_login(
-            json_data={"login": login, "password": password}
+            login_credentials= LoginCredentials(login=login, password=password, rememberMe=True)
         )
         token = {
             "x-dm-auth-token": response.headers["x-dm-auth-token"]
@@ -37,23 +43,23 @@ class AccountHelper:
             oldPassword: str,
             newPassword: str
     ):
-        json_data = {
-            'login': login,
-            'email': email,
-        }
-        response = self.dm_account_api.account_api.post_v1_account_password(json_data=json_data)
+        reset_password = ResetPassword(
+            login=login,
+            email=email,
+        )
+        response = self.dm_account_api.account_api.post_v1_account_password(reset_password=reset_password)
         assert response.status_code == 200, "Password no has been reset"
 
         token = self.get_activation_token_by_login(login=login, find_URI=True)
         assert token is not None, f"Not found token for {login}"
 
-        json_data = {
-            'login': login,
-            'token': token,
-            'oldPassword': oldPassword,
-            'newPassword': newPassword,
-        }
-        response = self.dm_account_api.account_api.put_v1_account_password(json_data=json_data)
+        change_password = ChangePassword(
+            login=login,
+            token=token,
+            oldPassword=oldPassword,
+            newPassword=newPassword,
+        )
+        response = self.dm_account_api.account_api.put_v1_account_password(change_password=change_password)
         assert response.status_code == 200, "Password no has been changed"
 
     def register_new_user(
@@ -62,13 +68,13 @@ class AccountHelper:
             password: str,
             email: str
     ):
-        json_data = {
-            'login': login,
-            'email': email,
-            'password': password,
-        }
+        registration = Registration(
+            login=login,
+            email=email,
+            password=password,
+        )
 
-        response = self.dm_account_api.account_api.post_v1_account(json_data=json_data)
+        response = self.dm_account_api.account_api.post_v1_account(registration=registration)
         assert response.status_code == 201, "Error create User"
 
         token = self.get_activation_token_by_login(login= login)
@@ -80,32 +86,32 @@ class AccountHelper:
         return response
 
     def user_login(self, login:str, password:str, remember_me:bool = True):
-        json_data = {
-            'login': login,
-            'password': password,
-            'rememberMe': remember_me,
-        }
-        response = self.dm_account_api.login_api.post_v1_account_login(json_data=json_data)
+        login_credentials = LoginCredentials(
+            login=login,
+            password=password,
+            rememberMe=remember_me,
+        )
+        response = self.dm_account_api.login_api.post_v1_account_login(login_credentials=login_credentials)
         assert response.status_code == 200, "User not authorized"
         return response
 
     def user_login_without_activate(self, login:str, password:str, remember_me:bool = True):
-        json_data = {
-            'login': login,
-            'password': password,
-            'rememberMe': remember_me,
-        }
-        response = self.dm_account_api.login_api.post_v1_account_login(json_data=json_data)
+        login_credentials=LoginCredentials(
+            login=login,
+            password=password,
+            rememberMe=remember_me,
+        )
+        response = self.dm_account_api.login_api.post_v1_account_login(login_credentials=login_credentials)
         assert response.status_code == 403, "Authorize user without activate email"
         return response
 
     def change_email_for_user(self, login:str, password:str, email:str):
-        json_data = {
-             'login': login,
-             'password': password,
-             'email' : email
-         }
-        response = self.dm_account_api.account_api.put_v1_account_email(json_data=json_data)
+        change_email = ChangeEmail(
+             login=login,
+             password=password,
+             email=email
+        )
+        response = self.dm_account_api.account_api.put_v1_account_email(change_email=change_email)
         assert response.status_code == 200, f"Not change email for User {login}"
         return response
 
