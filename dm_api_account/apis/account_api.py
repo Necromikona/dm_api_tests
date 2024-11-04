@@ -2,6 +2,7 @@ from dm_api_account.models.change_email import ChangeEmail
 from dm_api_account.models.change_password import ChangePassword
 from dm_api_account.models.registration import Registration
 from dm_api_account.models.reset_password import ResetPassword
+from dm_api_account.models.user_envelope import UserEnvelope
 from restclient.client import RestClient
 
 class AccountApi(RestClient):
@@ -32,11 +33,13 @@ class AccountApi(RestClient):
             path='/v1/account',
             **kwargs
         )
+
         return response
 
     def put_v1_account_token(
             self,
-            token
+            token,
+            validate_response=True
     ):
         """
         Activate registered user
@@ -50,6 +53,8 @@ class AccountApi(RestClient):
             path=f'/v1/account/{token}',
             headers=headers
         )
+        if validate_response:
+            return UserEnvelope(**response.json())
         return response
 
     def put_v1_account_email(

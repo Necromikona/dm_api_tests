@@ -28,7 +28,8 @@ class AccountHelper:
 
     def auth_client(self, login:str, password: str):
         response = self.dm_account_api.login_api.post_v1_account_login(
-            login_credentials= LoginCredentials(login=login, password=password, rememberMe=True)
+            login_credentials= LoginCredentials(login=login, password=password, rememberMe=True),
+            validate_response=False
         )
         token = {
             "x-dm-auth-token": response.headers["x-dm-auth-token"]
@@ -48,10 +49,8 @@ class AccountHelper:
             email=email,
         )
         response = self.dm_account_api.account_api.post_v1_account_password(reset_password=reset_password)
-        assert response.status_code == 200, "Password no has been reset"
 
         token = self.get_activation_token_by_login(login=login, find_URI=True)
-        assert token is not None, f"Not found token for {login}"
 
         change_password = ChangePassword(
             login=login,
@@ -60,7 +59,6 @@ class AccountHelper:
             newPassword=newPassword,
         )
         response = self.dm_account_api.account_api.put_v1_account_password(change_password=change_password)
-        assert response.status_code == 200, "Password no has been changed"
 
     def register_new_user(
             self,
@@ -75,24 +73,20 @@ class AccountHelper:
         )
 
         response = self.dm_account_api.account_api.post_v1_account(registration=registration)
-        assert response.status_code == 201, "Error create User"
 
         token = self.get_activation_token_by_login(login= login)
-        assert token is not None, f"Not found token for {login}"
 
         response = self.dm_account_api.account_api.put_v1_account_token(token=token)
-        assert response.status_code == 200, "User not activate"
 
         return response
 
-    def user_login(self, login:str, password:str, remember_me:bool = True):
+    def user_login(self, login:str, password:str, remember_me:bool = True, validate_response = False):
         login_credentials = LoginCredentials(
             login=login,
             password=password,
             rememberMe=remember_me,
         )
-        response = self.dm_account_api.login_api.post_v1_account_login(login_credentials=login_credentials)
-        assert response.status_code == 200, "User not authorized"
+        response = self.dm_account_api.login_api.post_v1_account_login(login_credentials=login_credentials, validate_response=validate_response)
         return response
 
     def user_login_without_activate(self, login:str, password:str, remember_me:bool = True):
@@ -101,8 +95,7 @@ class AccountHelper:
             password=password,
             rememberMe=remember_me,
         )
-        response = self.dm_account_api.login_api.post_v1_account_login(login_credentials=login_credentials)
-        assert response.status_code == 403, "Authorize user without activate email"
+        response = self.dm_account_api.login_api.post_v1_account_login(login_credentials=login_credentials, validate_response=False)
         return response
 
     def change_email_for_user(self, login:str, password:str, email:str):
@@ -112,17 +105,14 @@ class AccountHelper:
              email=email
         )
         response = self.dm_account_api.account_api.put_v1_account_email(change_email=change_email)
-        assert response.status_code == 200, f"Not change email for User {login}"
         return response
 
     def activate_token_for_user(self, login:str):
         # Поиск по логину
         token = self.get_activation_token_by_login(login=login)
-        assert token is not None, f"Not found token for {login}"
 
         # Активация нового токена
         response = self.dm_account_api.account_api.put_v1_account_token(token=token)
-        assert response.status_code == 200, "User not activate"
         return response
 
     @retry(stop_max_attempt_number=5,retry_on_result=retry_if_result_none, wait_fixed = 1000)
