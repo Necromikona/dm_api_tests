@@ -1,3 +1,4 @@
+from dm_api_account.models.general_error import GeneralError
 from dm_api_account.models.login_credentials import LoginCredentials
 from dm_api_account.models.user_envelope import UserEnvelope
 from restclient.client import RestClient
@@ -22,7 +23,8 @@ class LoginApi(RestClient):
         return response
 
     def delete_v1_account_login(
-            self
+            self,
+            validate_response=False
     ):
         """
         Logout as current user
@@ -31,10 +33,13 @@ class LoginApi(RestClient):
         response = self.delete(
             path='/v1/account/login'
         )
+        if validate_response:
+            return  GeneralError(**response.json())
         return response
 
     def delete_v1_account_login_all(
-            self
+            self,
+            validate_response=False
     ):
         """
          Logout from every device
@@ -43,4 +48,6 @@ class LoginApi(RestClient):
         response = self.delete(
             path='/v1/account/login/all'
         )
+        if validate_response:
+            return GeneralError(**response.json())
         return response
