@@ -51,7 +51,7 @@ def account_helper(account_api, mailhog_api):
 
 @pytest.fixture(scope="function")
 def prepare_user():
-    suffix = random.randint(0,100)
+    suffix = random.randint(0,1000)
     now = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
     login = f'testing_{now}_{suffix}'
     password = '6789012345'
